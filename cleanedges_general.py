@@ -129,6 +129,8 @@ def cleanedges_general(img, build=True, wht_img=None, check=False, quiet=False, 
     	The sigma-clipping of the noise to apply to the edges in order to clean them. Default 3.
     ext_name : str
     	String filename extension added to output cleaned images. Default 'cln'.
+    saturated_stars : bool
+    	Makes sure saturated stars are not falsely identified as image edges. Default ``True``.
 	'''
 
 	# Printing to terminal
