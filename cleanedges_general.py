@@ -9,7 +9,8 @@ flagged as sources. Also works for images with chip gaps.
 
 Main function is cleanedges_general, see below for calling sequence.
 
-Written by Marc Rafelski. Translated to Python and adapted by Laura Prichard, Feb 2019, updated May 2020.
+Written by Marc Rafelski. Translated to Python and adapted by Laura Prichard, Feb 2019, updated May 2020. 
+Updated by Kalina Nedkova, Nov 2022 to handle saturated stars so their centers are not treated as image edges.
 '''
 
 import numpy as np
@@ -90,7 +91,7 @@ def gauss_params(data, sig_clip=5.):
 	return data_clip, new_gparams
 
 
-def cleanedges_general(img, build=True, wht_img=None, check=False, quiet=False, plot=False, kernel_std=13./2.335, kernel_size=41, sig_clip=5., sig_noise=3., ext_name='cln'):
+def cleanedges_general(img, build=True, wht_img=None, check=False, quiet=False, plot=False, kernel_std=13./2.335, kernel_size=41, sig_clip=5., sig_noise=3., ext_name='cln', saturated_stars=True):
 	'''Main function for cleanedges_general. 
 	Takes an input image file and replaces the edges with Gaussian noise.
 
@@ -201,10 +202,16 @@ def cleanedges_general(img, build=True, wht_img=None, check=False, quiet=False, 
 	step1 = np.where(wht != 0) 					# Find all 'data' pixels using the weight map
 	cln = np.copy(drz)							# Copy input science data without linking the arrays
 	cln[step1] = 1 								# Set data=1
-	nan = np.where(np.isfinite(cln) == False)   # Find any NANs
+	nan = np.where(~np.isfinite(cln))  			# Find any NANs
 	cln[nan] = 0 								# Replace all NANs with 0
 
-	# Making a kernel to smooth the data mask by
+	if saturated_stars==True: 
+		# Saturated stars have wht=0 but are very bright in the science image, for now, set this to 500 x sigma
+		# Further testing needed to assess if this is a good value
+		star_ind = np.where((wht == 0) & (drz > 500*sigma))
+		cln[star_ind] = 1   					# set data at star_indexes = 1 so it will not be cleaned like an edge
+
+ 	# Making a kernel to smooth the data mask by
 	kernel = Gaussian2DKernel(kernel_std, x_size=kernel_size)
 
 	# Create a filter by convolving the mask and kernel to create "blurred" edges, everything but 0s and 1s will be cleaned
@@ -225,7 +232,7 @@ def cleanedges_general(img, build=True, wht_img=None, check=False, quiet=False, 
 	bad2d = np.where((filt != 0) & (filt != 1))   #Returns two arrays, one of x and one of y coordinates for the bad pixels
 
 	# Set random seed for repeatable "random" results
-	random.seed(16483)
+	np.random.seed(16483)
 	
 	# Create array of random numbers with mean of 0 and sigma of 1
 	ranarr = np.random.normal(loc=0.0, scale=1.0, size=bad2d[0].shape[0])
