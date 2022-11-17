@@ -131,8 +131,8 @@ def cleanedges_general(img, build=True, wht_img=None, check=False, quiet=False, 
     ext_name : str
     	String filename extension added to output cleaned images. Default 'cln'.
     saturated_stars_sig : int
-    	Makes sure saturated stars are not falsely identified as image edges. Saturated stars are identified as objects that are
-    	 `saturated_stars_sig` times brighter  Default ``500``.
+    	Assures that saturated stars are not falsely identified as image edges. Saturated stars are identified as objects that are
+    	 `saturated_stars_sig` times brighter than the sigma of the image. Default ``500``.
     	``0`` switches this feature off.
 	'''
 
@@ -212,7 +212,7 @@ def cleanedges_general(img, build=True, wht_img=None, check=False, quiet=False, 
 		# Further testing needed to assess what saturated_stars_sig needs to be set to. For now, default to 500, which
 		# works for the F275W UVIS images
 		star_ind = np.where((wht == 0) & (drz > saturated_stars_sig * sigma))
-		cln[star_ind] = 1  
+		cln[star_ind] = 1  						# set data at star_indexes = 1 so it will not be cleaned like an edge
 
  	# Making a kernel to smooth the data mask by
 	kernel = Gaussian2DKernel(kernel_std, x_size=kernel_size)
@@ -262,4 +262,3 @@ def cleanedges_general(img, build=True, wht_img=None, check=False, quiet=False, 
 	if quiet==False: print('Saving cleaned image to {}'.format(out_img)) 
 	hdul.writeto(out_img, overwrite=True)
 	if quiet==False: print('============================================')
-
