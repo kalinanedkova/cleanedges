@@ -91,7 +91,7 @@ def gauss_params(data, sig_clip=5.):
 	return data_clip, new_gparams
 
 
-def cleanedges_general(img, build=True, wht_img=None, check=False, quiet=False, plot=False, kernel_std=13./2.335, kernel_size=41, sig_clip=5., sig_noise=3., ext_name='cln', saturated_stars=True):
+def cleanedges_general(img, build=True, wht_img=None, check=False, quiet=False, plot=False, kernel_std=13./2.335, kernel_size=41, sig_clip=5., sig_noise=3., ext_name='cln', saturated_stars_sig=500.):
 	'''Main function for cleanedges_general. 
 	Takes an input image file and replaces the edges with Gaussian noise.
 
@@ -115,7 +115,7 @@ def cleanedges_general(img, build=True, wht_img=None, check=False, quiet=False, 
     quiet : bool
     	``True`` turns off code progress printed to terminal. Default ``False``.
     plot : bool
-    	``True`` plots the histogram of clipped data from which Gaussian noise values are determined. Default ```False`.
+    	``True`` plots the histogram of clipped data from which Gaussian noise values are determined. Default ``False``.
     kernel_std : float
     	Standard deviation (STD) of the Gaussian kernel (in pixels) to smooth a mask of the data by to define where the edge 
     	regions to be cleaned are. Higher value means a thicker edge region will be cleaned. Default 13./2.335 ~ 5.5 sigma, 
@@ -130,8 +130,10 @@ def cleanedges_general(img, build=True, wht_img=None, check=False, quiet=False, 
     	The sigma-clipping of the noise to apply to the edges in order to clean them. Default 3.
     ext_name : str
     	String filename extension added to output cleaned images. Default 'cln'.
-    saturated_stars : bool
-    	Makes sure saturated stars are not falsely identified as image edges. Default ``True``.
+    saturated_stars_sig : int
+    	Makes sure saturated stars are not falsely identified as image edges. Saturated stars are identified as objects that are
+    	 `saturated_stars_sig` times brighter  Default ``500``.
+    	``0`` switches this feature off.
 	'''
 
 	# Printing to terminal
@@ -205,11 +207,12 @@ def cleanedges_general(img, build=True, wht_img=None, check=False, quiet=False, 
 	nan = np.where(~np.isfinite(cln))  			# Find any NANs
 	cln[nan] = 0 								# Replace all NANs with 0
 
-	if saturated_stars==True: 
-		# Saturated stars have wht=0 but are very bright in the science image, for now, set this to 500 x sigma
-		# Further testing needed to assess if this is a good value
-		star_ind = np.where((wht == 0) & (drz > 500*sigma))
-		cln[star_ind] = 1   					# set data at star_indexes = 1 so it will not be cleaned like an edge
+	if saturated_stars_sig != 0: 
+		# Saturated stars have wht=0 but very bright in the corresponding science image (saturated_stars_sig*sigma)
+		# Further testing needed to assess what saturated_stars_sig needs to be set to. For now, default to 500, which
+		# works for the F275W UVIS images
+		star_ind = np.where((wht == 0) & (drz > saturated_stars_sig * sigma))
+		cln[star_ind] = 1  
 
  	# Making a kernel to smooth the data mask by
 	kernel = Gaussian2DKernel(kernel_std, x_size=kernel_size)
