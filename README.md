@@ -8,4 +8,4 @@ alignment (e.g. using tweakreg from DrizzlePac https://www.stsci.edu/scientific-
 or source detection (e.g. SExtractor/photutils) to prevent bad quality data at the image edges being 
 flagged as sources. Also works for images with chip gaps. Main function is cleanedges_general() in cleanedges_general.py, see there for input parameter descriptions.
 
-Written by Marc Rafelski. Translated to Python and adapted by Laura Prichard, Feb 2019, updated May 2020.
+Written by Marc Rafelski. Translated to Python and adapted by Laura Prichard, Feb 2019, updated May 2020. Updated by Kalina Nedkova, Nov 2022, to handle saturated stars so their centers are not treated as image edges.
