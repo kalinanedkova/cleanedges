@@ -105,7 +105,7 @@ def cleanedges_general(img, build=True, wht_img=None, check=False, quiet=False, 
 		(e.g. as produced by AstroDrizzle if build=True). ``False`` if img is just the path to the science FITS image
 		(e.g. if produced using AstroDrizzle with build=False) in which case wht_img must be set to the path for the 
 		corresponding weight/error image. Default ``True``.
-	wht_img : str
+    wht_img : str
 		Path to the corresponding weight/error FITS file to the primary input science image (img). If build=False, this 
 		must be set (e.g. '*_drc_wht.fits' if produced using AstroDrizzle with build=False). 
 		e.g. cleanedges_general(img, build=False, wht_img=wht_img)
